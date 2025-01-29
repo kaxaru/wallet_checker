@@ -17,5 +17,3 @@ The format is the same everywhere. Possible variants:
 ## Proxy(data/connection)
 I use the web3easy proxy format 
 address:port:login:password
-
-proxy -> socks5
