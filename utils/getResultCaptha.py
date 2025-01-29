@@ -3,6 +3,7 @@ import time
 import logging
 import requests
 from utils.getFile import read_file
+from layer.debankType import ConfigStruct
 
 class CreateTaskResult:
     def __init__(self, error_id, task_id):
@@ -18,6 +19,8 @@ class GetTaskResultResponse:
 
 
 def create_task(private_key_hex: str, api_key: str) -> str:
+
+
 
     payload = {
         "clientKey": api_key,
@@ -71,8 +74,8 @@ def get_task_result(private_key_hex: str, task_id: str, api_key:str) -> str:
 
 
 def solve_captcha(account: str) -> str:
-    CONFIG_FILE = read_file("./data/config.json", is_json=True)
-    api_key = CONFIG_FILE['2captcha_apikey']
+    CONFIG_FILE = ConfigStruct(**read_file("./data/config.json", is_json=True))
+    api_key = CONFIG_FILE.two_captcha_apikey
 
     while True:
         task_id = create_task(account, api_key)

@@ -3,19 +3,12 @@ import logging
 import requests
 from urllib.parse import urlencode
 from operator import itemgetter
+from layer.debankType import RabbyReturnData
+from typing import Tuple, List
 
-
-def sort_by_chain_balance(data):
-    return sorted(data, key=itemgetter("ChainBalance"), reverse=True)
-
-def get_total_balance(account_address, proxy):
+def get_total_balance(account_address, proxy) -> Tuple[float, List[RabbyReturnData]]:
     base_url = "https://api.rabby.io/v1/user/total_balance"
     params = {"id": account_address}
-
-    class RabbyReturnData:
-        def __init__(self, chain_name, chain_balance):
-            self.chain_name = chain_name
-            self.chain_balance = chain_balance
 
     for _ in range(10):
         try:
@@ -47,10 +40,10 @@ def get_total_balance(account_address, proxy):
             for current_chain in response_data["chain_list"]:
                 if current_chain["usd_value"] <= 0:
                     continue
-                chain_balances.append(RabbyReturnData(
-                    chain_name=current_chain["name"],
-                    chain_balance=current_chain["usd_value"]
-                ))
+                chain_balances.append(RabbyReturnData(**{
+                    'chain_name': current_chain["name"],
+                    'chain_balance': current_chain["usd_value"]
+                }))
 
             return total_usd_balance, chain_balances
 
@@ -68,14 +61,11 @@ def parse_rabby_account(account_data):
         account_address = account_address['wallet'].address
 
     total_usd_balance, chain_balances = get_total_balance(account_address, proxy)
-    sorted_chain_balances = sort_by_chain_balance([
-        {"ChainName": chain.chain_name, "ChainBalance": chain.chain_balance}
-        for chain in chain_balances
-    ])
+    sorted_chain_balances = sorted(chain_balances, key=lambda x: x.chain_balance, reverse = True)
 
     formatted_result = f"Address: {account_address}\nTotal Balance: {total_usd_balance:.2f} $\n\n"
     for chain in sorted_chain_balances:
-        formatted_result += f"{chain['ChainName']} | {chain['ChainBalance']:.2f} $\n"
+        formatted_result += f"{chain.chain_name} | {chain.chain_balance:.2f} $\n"
     formatted_result += "\n\n"
 
     print(f"{account_address} | Total USD Balance: {total_usd_balance:.2f} $")
@@ -94,6 +84,8 @@ def parse_rabby_account(account_data):
         file_path = "1000_plus_rabby.txt"
 
     append_to_file(f"./results/{file_path}", formatted_result)
+
+    return total_usd_balance
 
 def append_to_file(filename: str, data: str):
     with open(filename, "a") as file:

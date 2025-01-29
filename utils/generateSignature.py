@@ -6,6 +6,7 @@ import string
 import time
 from urllib.parse import urlencode, parse_qs, quote_plus
 from typing import Dict, Tuple, Union
+from layer.debankType import RequestParamsStruct, Info
 
 def generate_random_id() -> str:
     chars = "abcdef0123456789"
@@ -41,7 +42,7 @@ def map_to_query_string(payload: Dict[str, Union[str, int, float]]) -> str:
     return urlencode({key: str(value) for key, value in payload.items()})
 
 
-def generate_signature(payload: dict, method: str, path: str):
+def generate_signature(payload: dict, method: str, path: str) -> RequestParamsStruct:
     try:
         nonce = generate_nonce(40)
     except Exception as e:
@@ -56,24 +57,24 @@ def generate_signature(payload: dict, method: str, path: str):
     request_params = f"{method.upper()}\n{path.lower()}\n{sort_query_string(query_string.lower())}"
     request_params_hash = custom_sha256(request_params)
 
-    info = {
+    info = Info(**{
         "random_at": timestamp,
         "random_id": generate_random_id(),
         "user_addr": None
-    }
+    })
 
     try:
-        account_header = json.dumps(info)
+        account_header = info.json()
     except Exception as e:
         raise RuntimeError(f"Failed to generate account header: {e}")
 
     signature = hmac_sha256(rand_str_hash.encode(), request_params_hash.encode())
 
-    result = {
-        "AccountHeader": account_header,
-        "Nonce": nonce,
-        "Signature": signature,
-        "Timestamp": str(timestamp),
-    }
+    result = RequestParamsStruct(**{
+        "account_header": account_header,
+        "nonce": nonce,
+        "signature": signature,
+        "timestamp": str(timestamp),
+    })
 
     return result

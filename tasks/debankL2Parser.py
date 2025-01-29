@@ -106,6 +106,8 @@ def debank_l2_balance_parser(account_data: str):
         append_to_file("./results/debank_l2_balances.txt",
                        f"{account_address} | {account_balance} $\n")
 
+    return account_balance
+
 def append_to_file(filename: str, data: str):
     with open(filename, "a") as file:
         file.write(data)
