@@ -6,9 +6,6 @@ from layer import Chain
 
 import traceback
 
-git
-branch - M
-main
 @lru_cache
 def request_chains_caip_2_data() -> dict[int: CAIP2ChainData]:
     response = requests.get("https://chainid.network/chains.json")
